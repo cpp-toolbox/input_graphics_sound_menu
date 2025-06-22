@@ -11,6 +11,7 @@ In order to use the menu a few things need to happen, first it requires the foll
         {SoundType::UI_SUCCESS, "assets/sounds/success.wav"},
     };
     SoundSystem sound_system(100, sound_type_to_file);
+
 ```
 
 The menu requires a few systems and a single shader to render itself, so when initializing the shader cache we do this:
@@ -19,5 +20,25 @@ The menu requires a few systems and a single shader to render itself, so when in
     ShaderCache shader_cache(requested_shaders);
     Batcher batcher(shader_cache);
 ```
+
+It also requires the configuration system that's in charge of a config file:
+
+```cpp
+    Configuration configuration("assets/config/user_cfg.ini");
+```
+
+Then you can create it: 
+
+```cpp
+    InputGraphicsSoundMenu input_graphics_sound_menu(window, batcher, sound_system, configuration);
+```
+
+In order for it to render you have to call the following member function: 
+```cpp
+    void process_and_queue_render_menu(Window &window, InputState &input_state, IUIRenderSuite &ui_render_suite);
+```
+
+The `IUIRenderSuite` is an interface that when implemented renders the UI, here is an example implementation: https://github.com/cpp-toolbox/ui_render_suite_implementation
+
 
 It also relies on `InputState`, so make sure you set that up.
