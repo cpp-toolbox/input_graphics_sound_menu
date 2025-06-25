@@ -45,6 +45,7 @@ class InputGraphicsSoundMenu {
     };
 
   public:
+    bool enabled = true;
     UIState curr_state = UIState::MAIN_MENU;
 
     UI main_menu_ui, in_game_ui, about_ui, settings_menu_ui, player_settings_ui, input_settings_ui, sound_settings_ui,
@@ -180,7 +181,7 @@ class InputGraphicsSoundMenu {
 
         vertex_geometry::Grid grid(4, 1, 0.5, 0.5);
         auto frag_time_rect = grid.get_at(0, 0);
-        main_menu_ui.add_clickable_textbox(on_program_start, on_hover, "RUN", frag_time_rect, colors::darkgreen,
+        main_menu_ui.add_clickable_textbox(on_program_start, on_hover, "RESUME", frag_time_rect, colors::darkgreen,
                                            colors::green);
 
         auto settings_rect = grid.get_at(0, 1);
@@ -341,10 +342,15 @@ class InputGraphicsSoundMenu {
         UI input_settings_ui(-0.1, batcher.absolute_position_with_colored_vertex_shader_batcher.object_id_generator);
         input_settings_ui.add_textbox("mouse sensitivity", input_settings_grid.get_at(0, 0), colors::maroon);
 
-        std::function<void(std::string)> on_confirm = [&](std::string contents) { std::cout << contents << std::endl; };
+        std::function<void(std::string)> sens_on_click = [this](std::string option) {
+            sound_system.queue_sound(SoundType::UI_CLICK);
+            configuration.set_value("input", "sensitivity", option);
+        };
 
-        input_settings_ui.add_input_box(on_confirm, "1", input_settings_grid.get_at(2, 0), colors::grey,
+        input_settings_ui.add_input_box(sens_on_click, "1", input_settings_grid.get_at(2, 0), colors::grey,
                                         colors::lightgrey);
+
+        std::function<void(std::string)> on_confirm = [&](std::string contents) { std::cout << contents << std::endl; };
 
         input_settings_ui.add_textbox("fire", input_settings_grid.get_at(0, 1), colors::maroon);
         input_settings_ui.add_input_box(on_confirm, "lmb", input_settings_grid.get_at(2, 1), colors::grey,
@@ -481,6 +487,8 @@ class InputGraphicsSoundMenu {
             configuration.set_value("graphics", "wireframe", option);
         };
 
+        dropdown_option_idx =
+            get_index_or_default(configuration.get_value("graphics", "wireframe").value_or("off"), options);
         graphics_settings_ui.add_textbox("wireframe", graphics_settings_grid.get_at(0, 2), colors::maroon);
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 2), colors::orange, colors::orangered,
@@ -491,20 +499,36 @@ class InputGraphicsSoundMenu {
         };
 
         graphics_settings_ui.add_textbox("field of view", graphics_settings_grid.get_at(0, 3), colors::maroon);
-        graphics_settings_ui.add_input_box(fov_on_confirm, "degrees (30-160 limit)",
-                                           graphics_settings_grid.get_at(2, 3), colors::grey, colors::lightgrey);
+        graphics_settings_ui.add_input_box(
+            fov_on_confirm, configuration.get_value("graphics", "field_of_view").value_or("degrees (30-160 limit)"),
+            graphics_settings_grid.get_at(2, 3), colors::grey, colors::lightgrey);
 
-        std::vector<std::function<void()>> viewmodel_options_on_click = {[]() {}, []() {}};
-        graphics_settings_ui.add_textbox("enable view model", graphics_settings_grid.get_at(0, 4), colors::maroon);
-        graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
-                                          graphics_settings_grid.get_at(2, 4), colors::orange, colors::orangered,
-                                          on_off_options, empty_on_click, dropdown_on_hover);
+        std::function<void(std::string)> max_fps_on_confirm = [&](std::string option) {
+            configuration.set_value("graphics", "max_fps", option);
+        };
 
-        std::vector<std::function<void()>> fps_options_on_click = {[]() {}, []() {}};
+        graphics_settings_ui.add_textbox("max fps", graphics_settings_grid.get_at(0, 4), colors::maroon);
+        graphics_settings_ui.add_input_box(max_fps_on_confirm,
+                                           configuration.get_value("graphics", "max_fps").value_or("120"),
+                                           graphics_settings_grid.get_at(2, 4), colors::grey, colors::lightgrey);
+
+        std::function<void(std::string)> show_fps_on_click = [&](std::string option) {
+            configuration.set_value("graphics", "show_fps", option);
+        };
+
         graphics_settings_ui.add_textbox("show fps", graphics_settings_grid.get_at(0, 5), colors::maroon);
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 5), colors::orange, colors::orangered,
-                                          on_off_options, empty_on_click, dropdown_on_hover);
+                                          on_off_options, show_fps_on_click, dropdown_on_hover);
+
+        std::function<void(std::string)> show_pos_on_click = [&](std::string option) {
+            configuration.set_value("graphics", "show_pos", option);
+        };
+
+        graphics_settings_ui.add_textbox("show pos", graphics_settings_grid.get_at(0, 6), colors::maroon);
+        graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
+                                          graphics_settings_grid.get_at(2, 6), colors::orange, colors::orangered,
+                                          on_off_options, show_pos_on_click, dropdown_on_hover);
 
         return graphics_settings_ui;
     }
