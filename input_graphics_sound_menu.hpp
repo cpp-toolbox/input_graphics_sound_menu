@@ -22,7 +22,6 @@ enum class UIState {
     ADVANCED_SETTINGS,
 
     ABOUT,
-    IN_PROGRAM,
 };
 
 class InputGraphicsSoundMenu {
@@ -37,7 +36,7 @@ class InputGraphicsSoundMenu {
     InputState &input_state; // only taking this because of the member function to check if key is valid, remove
                              // hopefully in future
 
-    ConsoleLogger logger;
+    ConsoleLogger logger = ConsoleLogger("input_graphics_sound_menu");
 
     std::function<void()> on_hover = [&]() { sound_system.queue_sound(SoundType::UI_HOVER); };
     std::function<void(const std::string)> dropdown_on_hover = [&](const std::string) {
@@ -48,12 +47,11 @@ class InputGraphicsSoundMenu {
     bool enabled = true;
     UIState curr_state = UIState::MAIN_MENU;
 
-    UI main_menu_ui, in_game_ui, about_ui, settings_menu_ui, player_settings_ui, input_settings_ui, sound_settings_ui,
+    UI main_menu_ui, about_ui, settings_menu_ui, player_settings_ui, input_settings_ui, sound_settings_ui,
         graphics_settings_ui, advanced_settings_ui;
 
     std::map<UIState, UI &> game_state_to_ui = {
         {UIState::MAIN_MENU, main_menu_ui},
-        {UIState::IN_PROGRAM, in_game_ui},
         {UIState::ABOUT, about_ui},
         {UIState::SETTINGS_MENU, settings_menu_ui},
         {UIState::PROGRAM_SETTINGS, player_settings_ui},
@@ -66,13 +64,10 @@ class InputGraphicsSoundMenu {
     InputGraphicsSoundMenu(Window &window, InputState &input_state, Batcher &batcher, SoundSystem &sound_system,
                            Configuration &configuration)
         : window(window), input_state(input_state), batcher(batcher), sound_system(sound_system),
-          configuration(configuration), main_menu_ui(create_main_menu_ui()), in_game_ui(create_in_game_ui()),
-          about_ui(create_about_ui()), settings_menu_ui(create_settings_menu_ui()),
-          player_settings_ui(create_player_settings_ui()), input_settings_ui(create_input_settings_ui()),
-          sound_settings_ui(create_sound_settings_ui()), graphics_settings_ui(create_graphics_settings_ui()),
-          advanced_settings_ui(create_advanced_settings_ui()) {
-
-        logger.set_name("input_graphics_sound_menu");
+          configuration(configuration), main_menu_ui(create_main_menu_ui()), about_ui(create_about_ui()),
+          settings_menu_ui(create_settings_menu_ui()), player_settings_ui(create_player_settings_ui()),
+          input_settings_ui(create_input_settings_ui()), sound_settings_ui(create_sound_settings_ui()),
+          graphics_settings_ui(create_graphics_settings_ui()), advanced_settings_ui(create_advanced_settings_ui()) {
 
         configuration.register_config_handler("graphics", "resolution",
                                               [&](const std::string resolution) { window.set_resolution(resolution); });
@@ -89,6 +84,8 @@ class InputGraphicsSoundMenu {
         });
 
         configuration.apply_config_logic();
+
+        logger.info("successfully initialized");
     };
 
     std::vector<UIState> get_ui_dependencies(const UIState &ui_state) {
@@ -109,9 +106,6 @@ class InputGraphicsSoundMenu {
             return {UIState::SETTINGS_MENU};
         case UIState::ABOUT:
             return {};
-        case UIState::IN_PROGRAM:
-            return {};
-            ;
             break;
         }
         return {};
@@ -154,7 +148,7 @@ class InputGraphicsSoundMenu {
 
         std::function<void()> on_program_start = [&]() {
             sound_system.queue_sound(SoundType::UI_CLICK);
-            curr_state = UIState::IN_PROGRAM;
+            enabled = false;
         };
         std::function<void()> on_click_settings = [&]() {
             sound_system.queue_sound(SoundType::UI_CLICK);
@@ -216,19 +210,6 @@ class InputGraphicsSoundMenu {
                                        colors::seagreen, colors::grey);
 
         return about_ui;
-    }
-
-    UI create_in_game_ui() {
-
-        std::function<void()> on_back_clicked = [&]() { curr_state = {UIState::MAIN_MENU}; };
-
-        UI in_game_ui(0, batcher.absolute_position_with_colored_vertex_shader_batcher.object_id_generator);
-        std::function<void(std::string)> on_confirm = [&](std::string contents) { std::cout << contents << std::endl; };
-        in_game_ui.add_input_box(on_confirm, "password", 0, 0.25, 1, 0.25, colors::grey, colors::lightgrey);
-        in_game_ui.add_clickable_textbox(on_back_clicked, on_hover, "back to main menu", -0.65, -0.65, 0.5, 0.5,
-                                         colors::seagreen, colors::grey);
-
-        return in_game_ui;
     }
 
     UI create_settings_menu_ui() {
