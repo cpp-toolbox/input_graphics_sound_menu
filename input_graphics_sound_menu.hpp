@@ -469,7 +469,7 @@ class InputGraphicsSoundMenu {
         };
 
         dropdown_option_idx =
-            get_index_or_default(configuration.get_value("graphics", "wireframe").value_or("off"), options);
+            get_index_or_default(configuration.get_value("graphics", "wireframe").value_or("off"), on_off_options);
         graphics_settings_ui.add_textbox("wireframe", graphics_settings_grid.get_at(0, 2), colors::maroon);
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 2), colors::orange, colors::orangered,
