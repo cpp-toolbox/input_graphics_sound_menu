@@ -325,7 +325,7 @@ class InputGraphicsSoundMenu {
 
         std::function<void(std::string)> sens_on_click = [this](std::string option) {
             sound_system.queue_sound(SoundType::UI_CLICK);
-            configuration.set_value("input", "sensitivity", option);
+            configuration.set_value("input", "mouse_sensitivity", option);
         };
 
         input_settings_ui.add_input_box(sens_on_click, "1", input_settings_grid.get_at(2, 0), colors::grey,
