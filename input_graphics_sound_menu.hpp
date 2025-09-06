@@ -36,7 +36,7 @@ class InputGraphicsSoundMenu {
     InputState &input_state; // only taking this because of the member function to check if key is valid, remove
                              // hopefully in future
 
-    ConsoleLogger logger = ConsoleLogger("input_graphics_sound_menu");
+    Logger logger = Logger("input_graphics_sound_menu");
 
     std::function<void()> on_hover = [&]() { sound_system.queue_sound(SoundType::UI_HOVER); };
     std::function<void(const std::string)> dropdown_on_hover = [&](const std::string) {
