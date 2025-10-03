@@ -409,6 +409,9 @@ class InputGraphicsSoundMenu {
     UI create_graphics_settings_ui() {
 
         std::vector<std::string> resolutions = get_available_resolutions("16:9");
+        // NOTE: on mac this returns empty so for compliation purposes I'm just going to hack a fake value in 
+        if (resolutions.empty())
+            resolutions = {"1920x1080"};
 
         std::function<void(std::string)> on_confirm = [&](std::string contents) { std::cout << contents << std::endl; };
 
@@ -447,6 +450,7 @@ class InputGraphicsSoundMenu {
         dropdown_option_idx =
             get_index_or_default(configuration.get_value("graphics", "resolution").value_or("1280x720"), options);
         graphics_settings_ui.add_textbox("resolution", graphics_settings_grid.get_at(0, 0), colors::maroon);
+
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 0), colors::orange, colors::orangered,
                                           options, resolution_dropdown_on_click, dropdown_on_hover);
@@ -456,12 +460,14 @@ class InputGraphicsSoundMenu {
             configuration.set_value("graphics", "fullscreen", option);
         };
 
+
         dropdown_option_idx =
             get_index_or_default(configuration.get_value("graphics", "fullscreen").value_or("off"), on_off_options);
         graphics_settings_ui.add_textbox("fullscreen", graphics_settings_grid.get_at(0, 1), colors::maroon);
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 1), colors::orange, colors::orangered,
                                           on_off_options, fullscreen_on_click, dropdown_on_hover);
+
 
         std::function<void(std::string)> wireframe_on_click = [this](std::string option) {
             sound_system.queue_sound(SoundType::UI_CLICK);
