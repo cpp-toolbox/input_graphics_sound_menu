@@ -24,6 +24,17 @@ enum class UIState {
     ABOUT,
 };
 
+/**
+ * @class InputGraphicsSoundMenu
+ * @brief Handles all user interface (UI) states related to input, graphics, and sound configuration.
+ *
+ * This class manages multiple UI panels including main menu, settings menus, and submenus for
+ * sound, graphics, input, and player settings. It integrates input, configuration, sound, and rendering systems
+ * to create an interactive settings menu for the engine or game.
+ *
+ * @warning The class currently depends on `InputState` only for key validity checks.
+ *          This should be removed once key validation is decoupled.
+ */
 class InputGraphicsSoundMenu {
   private:
     vertex_geometry::Rectangle settings_menu_rect = vertex_geometry::Rectangle(glm::vec3(0, 0, 0), 1.2, 1.2);
@@ -61,6 +72,19 @@ class InputGraphicsSoundMenu {
         {UIState::ADVANCED_SETTINGS, advanced_settings_ui},
     };
 
+    /**
+     * @brief Constructs an InputGraphicsSoundMenu and initializes all UIs and configuration handlers.
+     *
+     * @param window Reference to the main Window.
+     * @param input_state Reference to the InputState used for handling input bindings.
+     * @param batcher Reference to the Batcher used for UI rendering.
+     * @param sound_system Reference to the SoundSystem for playing UI sounds.
+     * @param configuration Reference to the Configuration object managing persistent settings.
+     *
+     * @note This constructor also registers configuration handlers for graphics-related settings
+     *       (resolution, fullscreen, wireframe) and applies configuration logic upon initialization.
+     * @throws std::invalid_argument If a configuration handler attempts to parse an invalid setting string.
+     */
     InputGraphicsSoundMenu(Window &window, InputState &input_state, Batcher &batcher, SoundSystem &sound_system,
                            Configuration &configuration)
         : window(window), input_state(input_state), batcher(batcher), sound_system(sound_system),
@@ -88,6 +112,16 @@ class InputGraphicsSoundMenu {
         logger.info("successfully initialized");
     };
 
+  private:
+    /**
+     * @brief Retrieves the UIStates that should be rendered alongside a given UI.
+     *
+     * For example the SOUND_SETTINGS UIState requires the more generic SETTINGS_MENU UIState because it is used as the
+     * background
+     *
+     * @param ui_state The primary UI state for which dependencies are queried.
+     * @return A vector of dependent UIState values that must also be rendered.
+     */
     std::vector<UIState> get_ui_dependencies(const UIState &ui_state) {
         switch (ui_state) {
         case UIState::MAIN_MENU:
@@ -111,6 +145,16 @@ class InputGraphicsSoundMenu {
         return {};
     }
 
+    /**
+     * @brief Converts mouse coordinates to normalized device coordinates (NDC).
+     *
+     * @todo make an NDC subproject one day and dump this there
+     *
+     * @param window Pointer to the GLFW window.
+     * @param xpos Mouse X position in screen space.
+     * @param ypos Mouse Y position in screen space.
+     * @return A glm::vec2 representing the NDC mouse coordinates.
+     */
     glm::vec2 get_ndc_mouse_pos(GLFWwindow *window, double xpos, double ypos) {
         int width, height;
         glfwGetWindowSize(window, &width, &height);
@@ -118,10 +162,30 @@ class InputGraphicsSoundMenu {
         return {(2.0f * xpos) / width - 1.0f, 1.0f - (2.0f * ypos) / height};
     }
 
+    /**
+     * @brief Applies aspect ratio correction to normalized device coordinates.
+     *
+     * @param ndc_mouse_pos Mouse position in normalized device coordinates.
+     * @param x_scale Horizontal aspect scale (typically width/height).
+     * @return A glm::vec2 representing aspect-corrected NDC coordinates.
+     */
     glm::vec2 aspect_corrected_ndc_mouse_pos(const glm::vec2 &ndc_mouse_pos, float x_scale) {
         return {ndc_mouse_pos.x * x_scale, ndc_mouse_pos.y};
     }
 
+  public:
+    /**
+     * @brief Processes and queues the rendering of all active menu UIs.
+     *
+     * @param window Reference to the main window.
+     * @param input_state Reference to the input state.
+     * @param ui_render_suite Reference to the UI render suite implementation responsible for drawing the UI.
+     *
+     * @note This function will automatically render all UIs dependent on the current UI state.
+     * @warning Ensure that a valid `IUIRenderSuite` implementation (such as `ui_render_suite_implementation`) is
+     * provided before calling this function, a sample implementation using the toolbox_engine is here:
+     * https://github.com/cpp-toolbox/ui_render_suite_implementation
+     */
     void process_and_queue_render_menu(Window &window, InputState &input_state, IUIRenderSuite &ui_render_suite) {
         auto ndc_mouse_pos =
             get_ndc_mouse_pos(window.glfw_window, input_state.mouse_position_x, input_state.mouse_position_y);
@@ -144,6 +208,15 @@ class InputGraphicsSoundMenu {
         }
     }
 
+  private:
+    /**
+     * @brief Creates and returns the Main Menu UI.
+     *
+     * @return A fully constructed UI object representing the main menu.
+     *
+     * @details The main menu includes buttons for RESUME, SETTINGS, ABOUT, and QUIT.
+     * @note Each button plays a UI click or hover sound using SoundSystem callbacks.
+     */
     UI create_main_menu_ui() {
 
         std::function<void()> on_program_start = [&]() {
@@ -192,6 +265,14 @@ class InputGraphicsSoundMenu {
         return main_menu_ui;
     }
 
+    /**
+     * @brief Creates and returns the About UI.
+     *
+     * @return A fully constructed UI object for the About section.
+     *
+     * @details Displays information about the toolbox engine and provides a back button
+     *          to return to the main menu.
+     */
     UI create_about_ui() {
         std::function<void()> on_back_clicked = [&]() { curr_state = {UIState::MAIN_MENU}; };
 
@@ -212,6 +293,16 @@ class InputGraphicsSoundMenu {
         return about_ui;
     }
 
+    /**
+     * @brief Creates and returns the Settings Menu UI.
+     *
+     * @return A fully constructed UI object for the settings menu.
+     *
+     * @details The menu provides access to player, input, sound, graphics, and advanced settings.
+     *          It also includes buttons for saving, applying, and going back.
+     *
+     * @todo Consider extracting repeated button creation patterns into helper functions.
+     */
     UI create_settings_menu_ui() {
         UI settings_menu_ui(0, batcher.absolute_position_with_colored_vertex_shader_batcher.object_id_generator);
 
@@ -294,6 +385,14 @@ class InputGraphicsSoundMenu {
         return settings_menu_ui;
     }
 
+    /**
+     * @brief Creates and returns the Player Settings UI.
+     *
+     * @return A fully constructed UI object for player-related settings.
+     *
+     * @details Currently allows editing of the username and crosshair configuration.
+     * @todo Extend this menu to include additional player customization options.
+     */
     UI create_player_settings_ui() {
 
         std::function<void(std::string)> on_confirm = [&](std::string contents) { std::cout << contents << std::endl; };
@@ -314,6 +413,16 @@ class InputGraphicsSoundMenu {
         return player_settings_ui;
     }
 
+    /**
+     * @brief Creates and returns the Input Settings UI.
+     *
+     * @return A fully constructed UI object for input configuration.
+     *
+     * @details Provides editable input bindings for key actions (forward, back, left, right, etc.)
+     *          and configurable mouse sensitivity.
+     *
+     * @warning Uses `InputState::is_valid_key_string` for validation — this dependency should be removed in future.
+     */
     UI create_input_settings_ui() {
 
         vertex_geometry::Rectangle main_settings_rect = settings_menu.at(1);
@@ -390,6 +499,14 @@ class InputGraphicsSoundMenu {
         return input_settings_ui;
     }
 
+    /**
+     * @brief Creates and returns the Sound Settings UI.
+     *
+     * @return A fully constructed UI object for sound settings.
+     *
+     * @details Currently only provides a volume control placeholder.
+     * @todo Implement actual volume adjustment integration with SoundSystem.
+     */
     UI create_sound_settings_ui() {
 
         vertex_geometry::Rectangle main_settings_rect = settings_menu.at(1);
@@ -406,10 +523,21 @@ class InputGraphicsSoundMenu {
         return (it != vec.end()) ? std::distance(vec.begin(), it) : 0;
     }
 
+    /**
+     * @brief Creates and returns the Graphics Settings UI.
+     *
+     * @return A fully constructed UI object for graphics settings.
+     *
+     * @details Includes controls for resolution, fullscreen, wireframe mode, FOV, FPS cap,
+     *          and options to toggle FPS and position display.
+     *
+     * @warning On macOS, available resolution detection may fail; a fallback resolution ("1920x1080") is used.
+     * @todo Add dropdown validation for resolution parsing and better error feedback.
+     */
     UI create_graphics_settings_ui() {
 
         std::vector<std::string> resolutions = get_available_resolutions("16:9");
-        // NOTE: on mac this returns empty so for compliation purposes I'm just going to hack a fake value in 
+        // NOTE: on mac this returns empty so for compliation purposes I'm just going to hack a fake value in
         if (resolutions.empty())
             resolutions = {"1920x1080"};
 
@@ -460,14 +588,12 @@ class InputGraphicsSoundMenu {
             configuration.set_value("graphics", "fullscreen", option);
         };
 
-
         dropdown_option_idx =
             get_index_or_default(configuration.get_value("graphics", "fullscreen").value_or("off"), on_off_options);
         graphics_settings_ui.add_textbox("fullscreen", graphics_settings_grid.get_at(0, 1), colors::maroon);
         graphics_settings_ui.add_dropdown(on_click_settings, on_hover, dropdown_option_idx,
                                           graphics_settings_grid.get_at(2, 1), colors::orange, colors::orangered,
                                           on_off_options, fullscreen_on_click, dropdown_on_hover);
-
 
         std::function<void(std::string)> wireframe_on_click = [this](std::string option) {
             sound_system.queue_sound(SoundType::UI_CLICK);
@@ -520,6 +646,13 @@ class InputGraphicsSoundMenu {
         return graphics_settings_ui;
     }
 
+    /**
+     * @brief Creates and returns the Advanced Settings UI.
+     *
+     * @return A fully constructed UI object for advanced diagnostics settings.
+     *
+     * @details Provides toggles for visualizing tick time, ping, and movement dial indicators.
+     */
     UI create_advanced_settings_ui() {
 
         vertex_geometry::Rectangle main_settings_rect = settings_menu.at(1);
