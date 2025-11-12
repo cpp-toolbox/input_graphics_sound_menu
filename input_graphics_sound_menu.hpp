@@ -32,13 +32,17 @@ enum class UIState {
  * sound, graphics, input, and player settings. It integrates input, configuration, sound, and rendering systems
  * to create an interactive settings menu for the engine or game.
  *
+ * @note this whole system can be generalized I think because this is just a container holding specific uis and then
+ * there's a function that determins what uis need to be drawn
+ *
  * @warning The class currently depends on `InputState` only for key validity checks.
  *          This should be removed once key validation is decoupled.
  */
 class InputGraphicsSoundMenu {
   private:
     vertex_geometry::Rectangle settings_menu_rect = vertex_geometry::Rectangle(glm::vec3(0, 0, 0), 1.2, 1.2);
-    std::vector<vertex_geometry::Rectangle> settings_menu = weighted_subdivision(settings_menu_rect, {1, 3}, true);
+    std::vector<vertex_geometry::Rectangle> settings_menu =
+        weighted_subdivision(settings_menu_rect, {1, 3}, vertex_geometry::CutDirection::horizontal);
 
     SoundSystem &sound_system;
     Batcher &batcher;
@@ -145,34 +149,6 @@ class InputGraphicsSoundMenu {
         return {};
     }
 
-    /**
-     * @brief Converts mouse coordinates to normalized device coordinates (NDC).
-     *
-     * @todo make an NDC subproject one day and dump this there
-     *
-     * @param window Pointer to the GLFW window.
-     * @param xpos Mouse X position in screen space.
-     * @param ypos Mouse Y position in screen space.
-     * @return A glm::vec2 representing the NDC mouse coordinates.
-     */
-    glm::vec2 get_ndc_mouse_pos(GLFWwindow *window, double xpos, double ypos) {
-        int width, height;
-        glfwGetWindowSize(window, &width, &height);
-
-        return {(2.0f * xpos) / width - 1.0f, 1.0f - (2.0f * ypos) / height};
-    }
-
-    /**
-     * @brief Applies aspect ratio correction to normalized device coordinates.
-     *
-     * @param ndc_mouse_pos Mouse position in normalized device coordinates.
-     * @param x_scale Horizontal aspect scale (typically width/height).
-     * @return A glm::vec2 representing aspect-corrected NDC coordinates.
-     */
-    glm::vec2 aspect_corrected_ndc_mouse_pos(const glm::vec2 &ndc_mouse_pos, float x_scale) {
-        return {ndc_mouse_pos.x * x_scale, ndc_mouse_pos.y};
-    }
-
   public:
     /**
      * @brief Processes and queues the rendering of all active menu UIs.
@@ -187,9 +163,9 @@ class InputGraphicsSoundMenu {
      * https://github.com/cpp-toolbox/ui_render_suite_implementation
      */
     void process_and_queue_render_menu(Window &window, InputState &input_state, IUIRenderSuite &ui_render_suite) {
-        auto ndc_mouse_pos =
-            get_ndc_mouse_pos(window.glfw_window, input_state.mouse_position_x, input_state.mouse_position_y);
-        auto acnmp = aspect_corrected_ndc_mouse_pos(ndc_mouse_pos, window.width_px / (float)window.height_px);
+        glm::vec2 acnmp = glm_utils::tuple_to_vec2(
+            window.convert_point_from_2d_screen_space_to_2d_aspect_corrected_normalized_screen_space(
+                input_state.mouse_position_x, input_state.mouse_position_y));
 
         std::vector<UIState> uis_to_render = {curr_state};
         for (const auto &ui_state : get_ui_dependencies(curr_state)) {
