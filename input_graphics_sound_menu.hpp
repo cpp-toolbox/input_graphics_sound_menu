@@ -598,7 +598,7 @@ class InputGraphicsSoundMenu {
 
         graphics_settings_ui.add_textbox("max fps", graphics_settings_grid.get_at(0, 4), colors::maroon);
         graphics_settings_ui.add_input_box(max_fps_on_confirm,
-                                           configuration.get_value("graphics", "max_fps").value_or("120"),
+                                           configuration.get_value("graphics", "max_fps").value_or("60"),
                                            graphics_settings_grid.get_at(2, 4), colors::grey, colors::lightgrey);
 
         std::function<void(std::string)> show_fps_on_click = [&](std::string option) {
