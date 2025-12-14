@@ -512,7 +512,7 @@ class InputGraphicsSoundMenu {
      */
     UI create_graphics_settings_ui() {
 
-        std::vector<std::string> resolutions = get_available_resolutions("16:9");
+        std::vector<std::string> resolutions = get_available_resolutions();
         // NOTE: on mac this returns empty so for compliation purposes I'm just going to hack a fake value in
         if (resolutions.empty())
             resolutions = {"1920x1080"};
