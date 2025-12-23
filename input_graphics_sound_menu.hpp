@@ -53,9 +53,9 @@ class InputGraphicsSoundMenu {
 
     Logger logger = Logger("input_graphics_sound_menu");
 
-    std::function<void()> on_hover = [&]() { sound_system.queue_sound(SoundType::UI_HOVER); };
+    std::function<void()> on_hover = [&]() { sound_system.queue_sound(SoundType::HOVER); };
     std::function<void(const std::string)> dropdown_on_hover = [&](const std::string) {
-        sound_system.queue_sound(SoundType::UI_HOVER);
+        sound_system.queue_sound(SoundType::HOVER);
     };
 
   public:
@@ -196,23 +196,23 @@ class InputGraphicsSoundMenu {
     UI create_main_menu_ui() {
 
         std::function<void()> on_program_start = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             enabled = false;
         };
         std::function<void()> on_click_settings = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::PROGRAM_SETTINGS;
         };
         std::function<void()> on_click_about = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::ABOUT;
         };
         std::function<void()> on_game_quit = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             glfwSetWindowShouldClose(window.glfw_window, GLFW_TRUE);
         };
         std::function<void()> on_back_clicked = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::MAIN_MENU;
         };
 
@@ -285,21 +285,21 @@ class InputGraphicsSoundMenu {
         vertex_geometry::Grid top_row_grid(1, 5, settings_menu.at(0));
 
         std::function<void()> on_back_clicked = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::MAIN_MENU;
         };
         std::function<void()> on_apply_clicked = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             configuration.apply_config_logic();
         };
         std::function<void()> on_save_clicked = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             configuration.save_to_file();
         };
-        std::function<void()> settings_on_click = [&]() { sound_system.queue_sound(SoundType::UI_CLICK); };
+        std::function<void()> settings_on_click = [&]() { sound_system.queue_sound(SoundType::CLICK); };
 
         std::function<void()> player_on_click = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::PROGRAM_SETTINGS;
         };
         auto player_rect = top_row_grid.get_at(0, 0);
@@ -307,7 +307,7 @@ class InputGraphicsSoundMenu {
                                                colors::blue);
 
         std::function<void()> input_on_click = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::INPUT_SETTINGS;
         };
         auto input_rect = top_row_grid.get_at(1, 0);
@@ -315,7 +315,7 @@ class InputGraphicsSoundMenu {
                                                colors::blue);
 
         std::function<void()> sound_on_click = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::SOUND_SETTINGS;
         };
         auto sound_rect = top_row_grid.get_at(2, 0);
@@ -323,7 +323,7 @@ class InputGraphicsSoundMenu {
                                                colors::blue);
 
         std::function<void()> graphics_on_click = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::GRAPHICS_SETTINGS;
         };
         auto graphics_rect = top_row_grid.get_at(3, 0);
@@ -331,7 +331,7 @@ class InputGraphicsSoundMenu {
                                                colors::blue);
 
         std::function<void()> network_on_click = [&]() {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             curr_state = UIState::ADVANCED_SETTINGS;
         };
         auto network_rect = top_row_grid.get_at(4, 0);
@@ -409,7 +409,7 @@ class InputGraphicsSoundMenu {
         input_settings_ui.add_textbox("mouse sensitivity", input_settings_grid.get_at(0, 0), colors::maroon);
 
         std::function<void(std::string)> sens_on_click = [this](std::string option) {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             configuration.set_value("input", "mouse_sensitivity", option);
         };
 
@@ -431,7 +431,7 @@ class InputGraphicsSoundMenu {
                 return [this, key_str](std::string input_value) {
                     if (input_state.is_valid_key_string(input_value)) {
                         configuration.set_value("input", key_str, input_value);
-                        sound_system.queue_sound(SoundType::UI_CLICK);
+                        sound_system.queue_sound(SoundType::CLICK);
                     } else {
                         logger.warn("{} is not a valid key string, not setting it in the config, use a proper value.",
                                     input_value);
@@ -535,7 +535,7 @@ class InputGraphicsSoundMenu {
         std::function<void(std::string)> empty_on_click = [](std::string option) { std::cout << option << std::endl; };
 
         std::function<void(std::string)> resolution_dropdown_on_click = [this](std::string option) {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             size_t x_pos = option.find('x');
             unsigned int width, height;
             if (x_pos != std::string::npos) {
@@ -560,7 +560,7 @@ class InputGraphicsSoundMenu {
                                           options, resolution_dropdown_on_click, dropdown_on_hover);
 
         std::function<void(std::string)> fullscreen_on_click = [this](std::string option) {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             configuration.set_value("graphics", "fullscreen", option);
         };
 
@@ -572,7 +572,7 @@ class InputGraphicsSoundMenu {
                                           on_off_options, fullscreen_on_click, dropdown_on_hover);
 
         std::function<void(std::string)> wireframe_on_click = [this](std::string option) {
-            sound_system.queue_sound(SoundType::UI_CLICK);
+            sound_system.queue_sound(SoundType::CLICK);
             configuration.set_value("graphics", "wireframe", option);
         };
 
