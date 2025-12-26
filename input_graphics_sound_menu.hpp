@@ -512,7 +512,13 @@ class InputGraphicsSoundMenu {
      */
     UI create_graphics_settings_ui() {
 
-        std::vector<std::string> resolutions = get_available_resolutions();
+        auto aspect_ratio = window.get_aspect_ratio_in_simplest_terms();
+        // doing this so I don't have to change the api because I don't want to do it at the moment
+        std::string aspect_ratio_str =
+            std::to_string(std::get<0>(aspect_ratio)) + ":" + std::to_string(std::get<1>(aspect_ratio));
+
+        std::vector<std::string> resolutions = get_available_resolutions(aspect_ratio_str);
+
         // NOTE: on mac this returns empty so for compliation purposes I'm just going to hack a fake value in
         if (resolutions.empty())
             resolutions = {"1920x1080"};
